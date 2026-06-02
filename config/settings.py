@@ -90,12 +90,12 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 
     'DEFAULT_THROTTLE_RATES': {
-        'anon':         '100/day',    # Anonim: kuniga 100 ta so'rov
-        'user':         '1000/day',   # Login qilgan: kuniga 1000
-        'login':        '5/minute',   # Login: minutiga 5 ta urinish
-        'otp':          '3/minute',   # OTP: minutiga 3 ta
-        'register':     '10/hour',    # Ro'yxat: soatiga 10 ta
-        'payment':      '20/hour',    # To'lov: soatiga 20 ta
+        'anon':         '100/day',
+        'user':         '1000/day',
+        'login':        '5/minute',
+        'otp':          '3/minute',
+        'register':     '10/hour',
+        'payment':      '20/hour',
     },
 }
 
@@ -117,11 +117,10 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME':   timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME':  timedelta(days=7),
     'ROTATE_REFRESH_TOKENS':   True,
-    'BLACKLIST_AFTER_ROTATION': True,  # ← eski tokenni blacklist ga qo'shish
+    'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN':        True,
 }
 
-# ─── Redis & Cache ───────────────────────────────────────────────────────────
 REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 
 CACHES = {

@@ -13,10 +13,8 @@ from apps.products.filter import ProductFilter
 from apps.users.permission import IsAdmin, IsSeller, IsSellerOrAdmin
 
 
-# ─── Kategoriyalar ───────────────────────────────────────────────────────────
 
 class CategoryListView(generics.ListAPIView):
-    """Faqat ota kategoriyalar (children ichida)"""
     serializer_class   = CategorySerializer
     permission_classes = [permissions.AllowAny]
 
@@ -24,10 +22,8 @@ class CategoryListView(generics.ListAPIView):
         return Category.objects.filter(parent__isnull=True, is_active=True)
 
 
-# ─── Mahsulotlar ─────────────────────────────────────────────────────────────
 
 class ProductListView(generics.ListAPIView):
-    """Barcha tasdiqlangan mahsulotlar — filter, search, ordering"""
     serializer_class   = ProductListSerializer
     permission_classes = [permissions.AllowAny]
     filterset_class    = ProductFilter
@@ -42,7 +38,6 @@ class ProductListView(generics.ListAPIView):
 
 
 class ProductDetailView(generics.RetrieveAPIView):
-    """Bitta mahsulot detail"""
     serializer_class   = ProductDetailSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field       = 'slug'
@@ -54,7 +49,6 @@ class ProductDetailView(generics.RetrieveAPIView):
 
 
 class SellerProductListView(generics.ListCreateAPIView):
-    """Sotuvchi o'z mahsulotlarini ko'radi va qo'shadi"""
     permission_classes = [permissions.IsAuthenticated, IsSeller]
 
     def get_serializer_class(self):
@@ -69,7 +63,6 @@ class SellerProductListView(generics.ListCreateAPIView):
 
 
 class SellerProductDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """Sotuvchi o'z mahsulotini yangilaydi/o'chiradi"""
     serializer_class   = ProductCreateSerializer
     permission_classes = [permissions.IsAuthenticated, IsSeller]
 
@@ -78,7 +71,6 @@ class SellerProductDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ProductImageUploadView(APIView):
-    """Mahsulotga rasm qo'shish"""
     permission_classes = [permissions.IsAuthenticated, IsSeller]
     parser_classes     = [MultiPartParser, FormParser]
 
@@ -104,7 +96,7 @@ class ProductImageUploadView(APIView):
         return Response({'uploaded': len(created), 'images': created}, status=status.HTTP_201_CREATED)
 
 
-# ─── Wishlist ─────────────────────────────────────────────────────────────────
+
 
 class WishlistView(generics.ListAPIView):
     serializer_class = WishlistSerializer
@@ -114,7 +106,6 @@ class WishlistView(generics.ListAPIView):
 
 
 class WishlistToggleView(APIView):
-    """Qo'shish yoki olib tashlash"""
     def post(self, request, product_id):
         try:
             product = Product.objects.get(pk=product_id, is_active=True, is_approved=True)
@@ -128,7 +119,6 @@ class WishlistToggleView(APIView):
         return Response({'saved': True}, status=status.HTTP_201_CREATED)
 
 
-# ─── Banner ───────────────────────────────────────────────────────────────────
 
 class BannerListView(generics.ListAPIView):
     serializer_class   = BannerSerializer
@@ -145,11 +135,7 @@ class BannerListView(generics.ListAPIView):
             Q(ends_at__isnull=True) | Q(ends_at__gte=now)
         )
 
-
-# ─── Admin ───────────────────────────────────────────────────────────────────
-
 class AdminProductListView(generics.ListAPIView):
-    """Admin: barcha mahsulotlar"""
     serializer_class   = ProductListSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
     filterset_class    = ProductFilter
@@ -158,7 +144,6 @@ class AdminProductListView(generics.ListAPIView):
 
 
 class AdminProductApproveView(APIView):
-    """Admin: mahsulotni tasdiqlash"""
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
     def post(self, request, pk):
@@ -174,7 +159,6 @@ class AdminProductApproveView(APIView):
 
 
 class AdminPendingProductsView(generics.ListAPIView):
-    """Admin: tasdiqlanmagan mahsulotlar"""
     serializer_class   = ProductListSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
 

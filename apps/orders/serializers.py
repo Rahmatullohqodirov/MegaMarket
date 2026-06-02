@@ -5,7 +5,6 @@ from apps.products.models import Product
 from apps.products.serializers import ProductListSerializer
 
 
-# ─── Cart ────────────────────────────────────────────────────────────────────
 
 class CartItemSerializer(serializers.ModelSerializer):
     product  = ProductListSerializer(read_only=True)
@@ -41,7 +40,6 @@ class AddToCartSerializer(serializers.Serializer):
             raise serializers.ValidationError('Mahsulot topilmadi')
 
 
-# ─── Order ───────────────────────────────────────────────────────────────────
 
 class OrderItemSerializer(serializers.ModelSerializer):
     subtotal = serializers.ReadOnlyField()
@@ -101,7 +99,6 @@ class CreateOrderSerializer(serializers.Serializer):
         promo    = None
         discount = 0
 
-        # Promo kod tekshirish
         promo_code = self.validated_data.get('promo_code', '')
         if promo_code:
             try:
@@ -110,7 +107,6 @@ class CreateOrderSerializer(serializers.Serializer):
             except PromoCode.DoesNotExist:
                 pass
 
-        # Buyurtma yaratish
         order = Order.objects.create(
             user=user,
             total_amount=cart.total,
@@ -125,12 +121,10 @@ class CreateOrderSerializer(serializers.Serializer):
             }
         )
 
-        # OrderItem yaratish + stock kamaytirish
         for cart_item in cart.items.select_related('product', 'variant').all():
             product = cart_item.product
             price   = cart_item.variant.price if cart_item.variant and cart_item.variant.price else product.price
 
-            # Stock tekshirish (lock bilan)
             prod = Product.objects.select_for_update().get(pk=product.pk)
             if prod.stock < cart_item.quantity:
                 raise serializers.ValidationError(f'{prod.name} yetarli emas')
@@ -151,16 +145,12 @@ class CreateOrderSerializer(serializers.Serializer):
         return order
 
 
-# ─── Return ───────────────────────────────────────────────────────────────────
-
 class ReturnSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Return
         fields = ('id', 'order_item', 'reason', 'description', 'status', 'created_at')
         read_only_fields = ('id', 'status', 'created_at')
 
-
-# ─── Review ───────────────────────────────────────────────────────────────────
 
 class ReviewSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.full_name', read_only=True)

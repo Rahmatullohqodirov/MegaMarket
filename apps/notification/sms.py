@@ -17,7 +17,6 @@ def send_sms_task(phone: str, message: str):
         if not token:
             return {'success': False, 'error': 'Token olishda xato'}
 
-        # SMS yuborish
         resp = requests.post(
             'https://notify.eskiz.uz/api/message/sms/send',
             headers={'Authorization': f'Bearer {token}'},

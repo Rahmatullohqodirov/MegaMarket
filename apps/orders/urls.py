@@ -13,7 +13,6 @@ urlpatterns = [
 
     path('returns/', views.ReturnCreateView.as_view(), name='return_create'),
 
-    # Izohlar
     path('reviews/<int:product_id>/', views.ProductReviewListView.as_view(), name='product_reviews'),
     path('reviews/create/',           views.ReviewCreateView.as_view(),      name='review_create'),
 

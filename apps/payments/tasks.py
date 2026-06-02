@@ -13,7 +13,6 @@ def process_seller_payment(order_id):
         order       = Order.objects.get(pk=order_id)
         fee_percent = Decimal(settings.PLATFORM_FEE_PERCENT) / 100
 
-        # Har bir sotuvchi uchun alohida hisob
         sellers = {}
         for item in order.items.all():
             if not item.seller:
@@ -28,13 +27,11 @@ def process_seller_payment(order_id):
             fee       = gross * fee_percent
             net       = gross - fee
 
-            # Balans log
             SellerBalance.objects.create(
                 seller=seller, order=order,
                 amount=net, type='credit',
                 note=f"Buyurtma #{order.order_number}, fee: {fee}"
             )
-            # Sotuvchi balansini yangilash
             seller.balance += net
             seller.total_sales += 1
             seller.save(update_fields=['balance', 'total_sales'])

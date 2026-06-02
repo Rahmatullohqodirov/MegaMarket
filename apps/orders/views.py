@@ -14,16 +14,14 @@ from apps.notification.tasks import send_order_status_notification
 
 
 class CartView(APIView):
-    """Savatchani ko'rish"""
     def get(self, request):
         cart, _ = Cart.objects.get_or_create(user=request.user)
         return Response(CartSerializer(cart).data)
 
 
 class CartItemView(APIView):
-    """Savatcha CRUD"""
     def post(self, request):
-        """Mahsulot qo'shish"""
+
         serializer = AddToCartSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -44,7 +42,6 @@ class CartItemView(APIView):
         return Response(CartSerializer(cart).data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, item_id):
-        """Mahsulotni o'chirish"""
         try:
             cart = Cart.objects.get(user=request.user)
             CartItem.objects.get(pk=item_id, cart=cart).delete()
@@ -53,7 +50,6 @@ class CartItemView(APIView):
             return Response({'detail': 'Topilmadi'}, status=status.HTTP_404_NOT_FOUND)
 
     def patch(self, request, item_id):
-        """Miqdorni o'zgartirish"""
         quantity = request.data.get('quantity', 1)
         try:
             cart = Cart.objects.get(user=request.user)
@@ -68,10 +64,8 @@ class CartItemView(APIView):
             return Response({'detail': 'Topilmadi'}, status=status.HTTP_404_NOT_FOUND)
 
 
-# ─── Orders ──────────────────────────────────────────────────────────────────
 
 class OrderListView(generics.ListAPIView):
-    """Foydalanuvchi buyurtmalari"""
     serializer_class = OrderListSerializer
 
     def get_queryset(self):
@@ -87,13 +81,11 @@ class OrderDetailView(generics.RetrieveAPIView):
 
 
 class CreateOrderView(APIView):
-    """Yangi buyurtma yaratish"""
     def post(self, request):
         serializer = CreateOrderSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         try:
             order = serializer.create_order(request.user)
-            # Celery: xaridor va adminga xabar
             send_order_status_notification.delay(order.id, 'new_order')
             return Response(OrderDetailSerializer(order).data, status=status.HTTP_201_CREATED)
         except Exception as e:
@@ -101,7 +93,6 @@ class CreateOrderView(APIView):
 
 
 class CancelOrderView(APIView):
-    """Buyurtmani bekor qilish (faqat pending holatida)"""
     def post(self, request, pk):
         try:
             order = Order.objects.get(pk=pk, user=request.user)
@@ -109,7 +100,6 @@ class CancelOrderView(APIView):
                 return Response({'detail': 'Bekor qilib bo\'lmaydi'}, status=status.HTTP_400_BAD_REQUEST)
             order.status = 'cancelled'
             order.save()
-            # Stock qaytarish
             for item in order.items.all():
                 if item.product:
                     item.product.stock += item.quantity
@@ -120,7 +110,6 @@ class CancelOrderView(APIView):
             return Response({'detail': 'Topilmadi'}, status=status.HTTP_404_NOT_FOUND)
 
 
-# ─── Return ───────────────────────────────────────────────────────────────────
 
 class ReturnCreateView(generics.CreateAPIView):
     serializer_class = ReturnSerializer
@@ -133,10 +122,7 @@ class ReturnCreateView(generics.CreateAPIView):
         serializer.save()
 
 
-# ─── Review ──────────────────────────────────────────────────────────────────
-
 class ProductReviewListView(generics.ListAPIView):
-    """Mahsulot izohlari"""
     serializer_class   = ReviewSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -145,7 +131,6 @@ class ProductReviewListView(generics.ListAPIView):
 
 
 class ReviewCreateView(generics.CreateAPIView):
-    """Izoh qoldirish (faqat sotib olgan xaridor)"""
     serializer_class = ReviewSerializer
 
     def perform_create(self, serializer):
@@ -163,10 +148,9 @@ class ReviewCreateView(generics.CreateAPIView):
         item.save()
 
 
-# ─── Seller orders ───────────────────────────────────────────────────────────
+
 
 class SellerOrderListView(generics.ListAPIView):
-    """Sotuvchi o'ziga tegishli buyurtmalar"""
     serializer_class   = OrderListSerializer
     permission_classes = [permissions.IsAuthenticated, IsSeller]
 
@@ -176,7 +160,6 @@ class SellerOrderListView(generics.ListAPIView):
         ).distinct().prefetch_related('items')
 
 
-# ─── Admin ───────────────────────────────────────────────────────────────────
 
 class AdminOrderListView(generics.ListAPIView):
     serializer_class   = OrderListSerializer
